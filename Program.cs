@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -203,16 +204,18 @@ namespace svgr
                             var p = points[i];
                             var t = types[i];
 
-                            if (t == 0) // start
+                            PathPointType tEnum = (PathPointType)t; //enum with flags
+                            PathPointType tKind = (PathPointType)(t & 7); // bitwise & to exclude flags
+                            if (tKind == PathPointType.Start) // start
                             {
                                 pp = p;
                             }
-                            else if (pp != PointF.Empty && (t == 1 || t == 129 || t == 160)) // line
+                            else if (pp != PointF.Empty && (tKind == PathPointType.Line)) // line
                             {
                                 sb.AppendFormat("{0},{1},{2},{3};", transform(pp).X, transform(pp).Y, transform(p).X, transform(p).Y);
                                 pp = p;
                             }
-                            else if (pp != PointF.Empty && (t == 3 || t == 131)) // cubic Bézier spline
+                            else if (pp != PointF.Empty && (tKind == PathPointType.Bezier)) // cubic Bézier spline
                             {
                                 var _points = DrawBezier(0.1f, pp, p, points[i + 1], points[i + 2]);
                                 if (_points.Count > 1)
